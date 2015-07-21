@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.Date;
-import java.sql.Time;
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.UUID;
-
 import android.support.v7.app.AppCompatActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -32,30 +32,38 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener, OnItemClickListener {
 	
-	Button quit, turnonoff, search, write, settime;
-	TextView status,read_tv, datetime_tv;
+	Button turnonoff, search, write, settime, addalarm;
+	TextView status, read_tv, datetime_tv;
 	ListView myListView;
 	EditText write_text;
 	CheckBox led6;
 	
+	BluetoothDevice device;
 	BluetoothAdapter myBluetoothAdapter;
+	
 	Boolean connected = false;
+	Boolean connected_device = false;
 	
 	ArrayList<BluetoothDevice> pairedDevices;	
 	ArrayAdapter<String> listAdapter;
+	
+    TextClock textclock;
 	
     private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	
     protected static final int SUCCESS_CONNECT = 0;
     private static final int MESSAGE_READ = 1;
 	private static final int REQUEST_ENABLE_BT = 2;
+    protected static final int REQUEST_DISABLE_BT = 3;
 
 	ConnectedThread connectedThread; 
+	
 
 	final BroadcastReceiver bReceiver = new BroadcastReceiver() {
 		
@@ -63,16 +71,16 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		public void onReceive(Context context, Intent intent) {
 			
 			String action = intent.getAction();
+	        device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+
 		    // When discovery finds a device
 			if (BluetoothDevice.ACTION_FOUND.equals(action)) {
 				
-				// Get the BluetoothDevice object from the Intent
-				BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 				// add the name and the MAC address of the object to the arrayAdapter
 				pairedDevices.add(device);
 				listAdapter.add(device.getName() + "\n" + device.getAddress());
 				listAdapter.notifyDataSetChanged();
-			}
+			}       
 		}
 	};
 
@@ -84,18 +92,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 			
 			case SUCCESS_CONNECT:
 				
+				//connect = true;
 				connectedThread = new ConnectedThread((BluetoothSocket) msg.obj);	
 				connectedThread.start();
 				Toast.makeText(getApplicationContext(), "Connected.", Toast.LENGTH_SHORT).show();
-				//Do Smt
-				
+				status.setText("Connect to " + device.getName());
+				connected_device = true;
 			 break;
 				
 			case MESSAGE_READ:
 				
 				String read = (String) msg.obj;
-				read_tv.setText(read);
-				break;
+				read_tv.setText(read);	            
+			break;
+			
 			
 			}
 		}
@@ -105,11 +115,11 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		
-		quit = (Button) findViewById(R.id.quit);
 		turnonoff = (Button) findViewById(R.id.turnonoff);
 		search = (Button) findViewById(R.id.search);
 		write = (Button) findViewById(R.id.write);
 		settime = (Button) findViewById(R.id.settime);
+		addalarm = (Button) findViewById(R.id.addalarm);
 
 		status = (TextView) findViewById(R.id.status);
 		read_tv = (TextView) findViewById(R.id.read);
@@ -118,6 +128,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		write_text = (EditText) findViewById(R.id.editText1);
 		
 		led6 = (CheckBox) findViewById(R.id.led6);
+		
+		textclock = (TextClock) findViewById(R.id.textClock1);
 		
 		myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if(myBluetoothAdapter == null) {
@@ -131,16 +143,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 			turnonoff.setOnClickListener(this);
 		}
 		
-		if(connectedThread != null) {
-			
-			connectedThread.run();
-		}
+		
 		
 		search.setOnClickListener(this);
 		write.setOnClickListener(this);
 		led6.setOnClickListener(this);
 		settime.setOnClickListener(this);
-
+		addalarm.setOnClickListener(this);
+		
 		myListView = (ListView) findViewById(R.id.listView1);
 		listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 		pairedDevices = new ArrayList<BluetoothDevice>(); 
@@ -169,6 +179,19 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	}
 
 	@Override
+	public void onStop() {
+		//if (bReceiver != null)
+		//	unregisterReceiver(bReceiver);;
+		super.onStop();
+	}
+
+	@Override
+	public void onDestroy() {
+		super.onDestroy();
+	}
+	
+	
+	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
 		if(v.getId() == R.id.turnonoff) {
@@ -191,9 +214,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		
 		if(v.getId() == R.id.write) {
 			
-			String send = write_text.getText().toString();
-			send = send + '\n';
-			connectedThread.write(send.getBytes());		
+			String send = write_text.getText().toString();			
+
+			
+			if(connected_device == true) {
+				connectedThread.write(send.getBytes());
+			}	
 		}
 		
 		if(v.getId() == R.id.led6) {
@@ -202,20 +228,51 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 				
 				String on = "LED6";
 				on = on + '\n';
-				connectedThread.write(on.getBytes());	
+				if(connected_device == true)
+					connectedThread.write(on.getBytes());	
 			}
 			else {
 				
 				String off = "LED6OFF";
 				off = off + '\n';
-				connectedThread.write(off.getBytes());
+				if(connected_device == true)
+					connectedThread.write(off.getBytes());
 			}
 		}
 		
 		if(v.getId() == R.id.settime) {
 			
+			long msTime = System.currentTimeMillis();
+			Date curDateTime = new Date(msTime);
+			DateFormat dateFormat = new SimpleDateFormat("#HH:mm:ss:dd:MM:yyyy");
+			String datetime = dateFormat.format(curDateTime);
+			
+			Calendar cal = Calendar.getInstance();
+			cal.setTime(curDateTime);
+			int dayofweek = cal.get(Calendar.DAY_OF_WEEK)-1;
+			
+			if(dayofweek == 0) {
+				
+				dayofweek=7;
+			}
+			
+			datetime = datetime + ":" + String.valueOf(dayofweek);
+			
+			datetime_tv.setText(datetime);
+			
+			datetime = datetime + '\n';
+			if(connected_device == true)
+				connectedThread.write(datetime.getBytes());	
 
-
+		}
+		
+		if(v.getId() == R.id.addalarm) {
+			
+			Bundle bundle = new Bundle();
+			Intent intent = new Intent(this, AddArayuzClass.class);
+			bundle.putSerializable("selected_database", 0);
+			intent.putExtras(bundle);
+			startActivity(intent);	
 		}
 		
 	
@@ -226,19 +283,17 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 	     if (resultCode == RESULT_OK) {
-	    	 Toast.makeText(getApplicationContext(),"You select Yes.",
-		              Toast.LENGTH_SHORT).show();
+	    	 
+	    	 //Toast.makeText(getApplicationContext(),"You select Yes.",
+		        //      Toast.LENGTH_SHORT).show();
 				turnonoff.setText("Turn OFF");
 				connected = true;
-				status.setText("Status: Enable BT");
-				
-				
-
-
+				status.setText("BT Enable");
 	     }
 	     if(resultCode == RESULT_CANCELED) {
-	    	 Toast.makeText(getApplicationContext(),"You select No.",
-		              Toast.LENGTH_SHORT).show();
+	    	 
+	    	// Toast.makeText(getApplicationContext(),"You select No.",
+		             // Toast.LENGTH_SHORT).show();
 				turnonoff.setText("Turn ON");
 				connected = false;
 				status.setText("Status: Disable BT");
@@ -246,20 +301,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	     }
 	  }
 	
-	
-	/*
-	public void listpaireddevice() {
-
-		// get paired device
-		devices = myBluetoothAdapter.getBondedDevices();
-		// put it's one to the adapter
-		listAdapter.clear();
-		for(BluetoothDevice device : pairedDevices)
-			listAdapter.add(device.getName()+ "\n" + device.getAddress());
-			Toast.makeText(getApplicationContext(),"Show Paired Devices",
-		              Toast.LENGTH_SHORT).show();
-	}
-	*/
 	
 	
 	public void search() {
@@ -284,11 +325,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	   public void on(){
 		   
            connected = true;
-		   //status.setText("Status: Connected");
 
 	      if (!myBluetoothAdapter.isEnabled()) {
 	    	 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-	    	    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT); 	 
+	    	    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT); 	
+	    	 //IntentFilter disableBTIntent = new IntentFilter(BluetoothDevice.ACTION_ACL_DISCONNECTED) ; 
+	    	 //registerReceiver(bReceiver, disableBTIntent);
+
              Toast.makeText(getApplicationContext(),"Bluetooth turned on" ,
 	                 Toast.LENGTH_LONG).show();
              
@@ -296,15 +339,16 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	      }
 	      else{
 	    	  
-	         Toast.makeText(getApplicationContext(),"Bluetooth is already on", 
+	         Toast.makeText(getApplicationContext(),"Bluetooth is already on",
 	        		 Toast.LENGTH_LONG).show();
+	         status.setText("BT Enable");
 	      }
 	   }
 	   
 	   public void off(){
 		   
 		   myBluetoothAdapter.disable();
-		   status.setText("Status: Disable");
+		   status.setText("BT Disable");
 		   Toast.makeText(getApplicationContext(),"Bluetooth turned off",
 		                 Toast.LENGTH_LONG).show();
 		   
@@ -388,7 +432,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		    
 		    
 		    public void run() {
-		    	byte[] buffer = new byte[1024];
+		    	byte[] buffer = null;
+		    	buffer = new byte[1024];
 	            int bytes = 0; 
 		        // Keep listening to the InputStream until an exception occurs
 		        while (true) {
@@ -396,15 +441,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		            	bytes = mmInStream.read(buffer);            //read bytes from input buffer
 	                    for(int i = 0; i<10; i++) {
 	                    	if(buffer[i] == "#".getBytes()[0]) {
-	                    		String readMessage = new String(buffer, i, 22);
-	                    		//String readMessage = String.valueOf(buffer.length);
+	                        
+                    			String readMessage = new String(buffer,0,buffer.length);
 	                    		// Send the obtained bytes to the UI Activity
 	                    		mHandler.obtainMessage(MESSAGE_READ, bytes, -1, readMessage)
 	                            .sendToTarget();
 	                    	}
 	                    }	
 		            } catch (IOException e) {
-			            Log.e("Error2", "Hata var dayý");
+			            Log.e("Error2", "Hata var");
 
 		                break;
 		            }
@@ -413,6 +458,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		  
 		    /* Call this from the main activity to send data to the remote device */
 		    public void write(byte[] bytes) {
+		        try {
+		            mmOutStream.write(bytes);
+		        } catch (IOException e) { }
+		    }
+		    
+		    public void writes(byte bytes) {
 		        try {
 		            mmOutStream.write(bytes);
 		        } catch (IOException e) { }
@@ -437,5 +488,49 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		connectThread.start();
 	}
 	   
-	   
+	private String convertStringToHex(String string)
+	{
+	    StringBuilder newString = new StringBuilder();
+	    for (int i=0; i<string.length(); i++)
+	    {
+	        newString.append(String.format("%x ", (byte)(string.charAt(i))));
+	    }
+	    return newString.toString();
+	} 
+	
+	public String convertHexToString(String hex) {
+		
+	    StringBuilder sb = new StringBuilder();
+	    
+	    char[] hexData = hex.toCharArray();
+	    for (int count = 0; count < hexData.length - 1; count += 2) {
+	        int firstDigit = Character.digit(hexData[count], 16);
+	        int lastDigit = Character.digit(hexData[count + 1], 16);
+	        int decimal = firstDigit * 16 + lastDigit;
+	        sb.append((char)decimal);
+	    }
+	    return sb.toString();
+	}
+	
+	 public byte[] toHex(String hex) {
+	        int len = hex.length();
+	        byte[] result = null;
+	        result = new byte[len-(len/2)];
+
+
+
+	        try {
+	            int index = 0;
+	            for (int i = 0; i < len-1; i += 2) {
+	                result[index] = (byte) Integer.parseInt(hex.substring(i, i + 2), 16);
+	                index++;
+	            }
+	        } catch (NumberFormatException e) {
+	           // log("toHex NumberFormatException: " + e.getMessage());
+
+	        } catch (StringIndexOutOfBoundsException e) {
+	           // log("toHex StringIndexOutOfBoundsException: " + e.getMessage());
+	        }
+	        return result;
+	    }
 }

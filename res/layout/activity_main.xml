@@ -23,10 +23,10 @@
             android:layout_height="wrap_content" >
 
             <Button
-                android:id="@+id/quit"
+                android:id="@+id/turnonoff"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Quit" />
+                android:text="Turn On" />
 
             <Button
                 android:id="@+id/search"
@@ -34,17 +34,17 @@
                 android:layout_height="wrap_content"
                 android:text="Search BT Device" />
 
+            <Button
+                android:id="@+id/addalarm"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="ADD ALARM" />
+
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content" >
-
-            <Button
-                android:id="@+id/turnonoff"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Turn On" />
 
         </LinearLayout>
 
@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="5dp"
             android:layout_marginTop="5dp"
-            android:text="TextView" />
+            android:text="" />
 
         <ListView
             android:id="@+id/listView1"
@@ -74,7 +74,6 @@
                 android:layout_weight="1"
                 android:ems="10" >
 
-                <requestFocus />
             </EditText>
 
             <Button
@@ -92,11 +91,28 @@
             android:text="Reading Value"
             android:textAppearance="?android:attr/textAppearanceMedium" />
 
+        <TextView
+            android:id="@+id/textView1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="5dp"
+            android:layout_marginTop="20dp"
+            android:text="STM32F4 DISCOVERY" />
+
+        <TextClock
+            android:id="@+id/textClock1"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:format12Hour="@null"
+            android:format24Hour="#k:mm:ss"
+            android:text="TextClock" />
+
         <CheckBox
             android:id="@+id/led6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
             android:text="LED 6 On/Off" />
 
         <Button
@@ -109,7 +125,7 @@
             android:id="@+id/datetime_tv"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_margin="5dp"
             android:text="datetime" />
 
     </LinearLayout>
