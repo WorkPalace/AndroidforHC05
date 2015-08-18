@@ -9,7 +9,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
-import android.view.MenuItem;
+
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -20,8 +20,6 @@ public class OutPut extends AppCompatActivity implements OnClickListener {
 	String title,description,time,date,message;
 	int id,return_database;
 	Button dismiss,snooze;
-	Kayýt cn; 
-	DatabaseHandler db = new DatabaseHandler(this);
 	int selected_database_position;
 
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,11 +44,6 @@ public class OutPut extends AppCompatActivity implements OnClickListener {
 		id =  intent.getIntExtra("Task_Id", id);
 		return_database =  intent.getIntExtra("return_database", return_database);//ss
 		selected_database_position =  intent.getIntExtra("selected_database_position", selected_database_position);//ss
-
-		List<Kayýt> mKayýtListesi = db.getAllKayýtlar(return_database);
-		cn = mKayýtListesi.get(selected_database_position);
-		cn.setIsaretliMi("true");
-		db.updateContact(cn, return_database);
 		
 		message = "Due date: " + date + ", " + time;
 
@@ -62,28 +55,6 @@ public class OutPut extends AppCompatActivity implements OnClickListener {
 		snooze.setOnClickListener(this);
 	}
 
-
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		super.onOptionsItemSelected(item);
-		
-		Intent mainintent = new Intent(this, MainActivity.class);
-
-		switch(item.getItemId()){
-		case android.R.id.home:
-			
-			Bundle bundle = new Bundle();///ss
-			bundle.putSerializable("user_selected", return_database);
-			mainintent.putExtras(bundle);
-			
-		     mainintent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-			 startActivity(mainintent);
-	         finish();
-		     break;
-		}
-		return true;
-	}
-
 	@Override
 	public void onClick(View v) {
 		// TODO Auto-generated method stub
@@ -92,10 +63,6 @@ public class OutPut extends AppCompatActivity implements OnClickListener {
 
 		switch(v.getId()){
 		case R.id.snoozeButton:
-			
-			cn.setIsaretliMi("false");
-			db.updateContact(cn, return_database);
-			
 			bundle.putSerializable("user_selected", return_database);//ss
 			mainintent.putExtras(bundle);
 			

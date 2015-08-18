@@ -62,8 +62,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	private static final int REQUEST_ENABLE_BT = 2;
     protected static final int REQUEST_DISABLE_BT = 3;
 
-	ConnectedThread connectedThread; 
-	
+	static ConnectedThread connectedThread; 
 
 	final BroadcastReceiver bReceiver = new BroadcastReceiver() {
 		
@@ -172,7 +171,16 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		// automatically handle clicks on the Home/Up button, so long
 		// as you specify a parent activity in AndroidManifest.xml.
 		int id = item.getItemId();
-		if (id == R.id.action_settings) {
+		if (id == R.id.create_alarm) {
+			
+			Toast.makeText(getApplicationContext(),"Create Alarm",
+		              Toast.LENGTH_SHORT).show();
+			
+			Bundle bundle = new Bundle();
+			Intent intent = new Intent(this, CreateAlarmActivity.class);
+			//bundle.putSerializable("selected_database", xxx);
+			intent.putExtras(bundle);
+			startActivity(intent);				
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
@@ -242,27 +250,29 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		
 		if(v.getId() == R.id.settime) {
 			
-			long msTime = System.currentTimeMillis();
-			Date curDateTime = new Date(msTime);
-			DateFormat dateFormat = new SimpleDateFormat("#HH:mm:ss:dd:MM:yyyy");
-			String datetime = dateFormat.format(curDateTime);
-			
-			Calendar cal = Calendar.getInstance();
-			cal.setTime(curDateTime);
-			int dayofweek = cal.get(Calendar.DAY_OF_WEEK)-1;
-			
-			if(dayofweek == 0) {
-				
-				dayofweek=7;
-			}
-			
-			datetime = datetime + ":" + String.valueOf(dayofweek);
-			
-			datetime_tv.setText(datetime);
-			
-			datetime = datetime + '\n';
-			if(connected_device == true)
-				connectedThread.write(datetime.getBytes());	
+
+						long msTime = System.currentTimeMillis();
+						Date curDateTime = new Date(msTime);
+						DateFormat dateFormat = new SimpleDateFormat("#HH:mm:ss:dd:MM:yyyy");
+						String datetime = dateFormat.format(curDateTime);
+						
+						Calendar cal = Calendar.getInstance();
+						cal.setTime(curDateTime);
+						int dayofweek = cal.get(Calendar.DAY_OF_WEEK)-1;
+						
+						if(dayofweek == 0) {
+							
+							dayofweek=7;
+						}
+						
+						datetime = datetime + ":" + String.valueOf(dayofweek);
+						
+						datetime_tv.setText(datetime);
+						
+						datetime = datetime + '\n';
+						//if(connected_device == true)
+							connectedThread.write(datetime.getBytes());	
+
 
 		}
 		
@@ -359,7 +369,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	   
 	   
 	   
-	   private class ConnectThread extends Thread {
+	   final class ConnectThread extends Thread {
 		    private final BluetoothSocket mmSocket;
 		    private final BluetoothDevice mmDevice;
 		 
@@ -409,7 +419,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	   
 	   
 	   	   
-	   private class ConnectedThread extends Thread {
+	   final class ConnectedThread extends Thread {
 			private final BluetoothSocket mmSocket;
 		    private final InputStream mmInStream;
 		    private final OutputStream mmOutStream;

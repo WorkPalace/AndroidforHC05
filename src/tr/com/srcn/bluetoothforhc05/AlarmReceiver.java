@@ -15,50 +15,24 @@ import android.preference.PreferenceManager;
 
 public class AlarmReceiver extends BroadcastReceiver {
 	private final String SOMEACTION = "com.manish.alarm.ACTION";
-	List<Kayýt> editkayýtlar;
-	Kayýt kayýt;
+
 	int position = 0, xxx, db_position = 0;	
 	String et_title,description,date,time,messagex; 	
-	DatabaseHandler db;
 
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		
-		db = new DatabaseHandler(context);
 		String action = intent.getAction();
 		if (SOMEACTION.equals(action)) {
 
 			Bundle bundle = intent.getExtras();
 			int id = bundle.getInt("TASK_ID");
-			String database = bundle.getString("selected_database");
-			
-			DatabaseHandler db = new DatabaseHandler(context);
-			List<DatabaseList> databases = db.getAllDatabaseListItems();
+			String date = bundle.getString("date");
+			String time = bundle.getString("time");
 
-			for (DatabaseList cn : databases) {
-				if(cn.getTitle().equals(database)){	
-					break;
-				}
-				db_position++;
-			}		
-			xxx = db_position;
-	        editkayýtlar = db.getAllKayýtlar(xxx);
-
-	        
-	        for (Kayýt cn : editkayýtlar) {
-	    		if(cn.getPendingId().equals(Integer.toString(id))){
-	    			break;
-	    		}
-	    		else{
-	    			position++;
-	    		}      	
-	        }
-	        
-	        kayýt = editkayýtlar.get(position);	        
-	        et_title =kayýt.getTitle();
-			description = kayýt.getDescription();
-		    date = kayýt.getDate();
-		    time = kayýt.getTime();
+	        et_title = "Alarm Title";
+			description = "Alarm Description";
+		  
 			generateNotification(context,et_title, id, et_title, description, date, time);
 			
 			
@@ -85,21 +59,16 @@ public class AlarmReceiver extends BroadcastReceiver {
 		  notificationIntent.putExtra("return_database", xxx);
 		  notificationIntent.putExtra("selected_database_position", position);
 
-		  List<Kayýt> mKayýtListesi = db.getAllKayýtlar(xxx);
-		  Kayýt cn = mKayýtListesi.get(position);
-		  cn.setIsaretliMi("true");
-		  db.updateContact(cn, xxx);
-
-		  SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
-		  String strRingtonePreference = sharedPrefs.getString("audio", "DEFAULT_SOUND"); 
-		  Boolean defValue = sharedPrefs.getBoolean("vibrate", true);
+		  //SharedPreferences sharedPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+		  //String strRingtonePreference = sharedPrefs.getString("audio", "DEFAULT_SOUND"); 
+		  //Boolean defValue = sharedPrefs.getBoolean("vibrate", true);
 		  
-		  if(defValue == true) {
+		  //if(defValue == true) {
 			  
 			  notification.defaults |= Notification.DEFAULT_VIBRATE;
-		  }
+		  //}
 		  
-		  notification.sound = Uri.parse(strRingtonePreference);
+		  //notification.sound = Uri.parse(strRingtonePreference);
 
 		  PendingIntent intent = PendingIntent.getActivity(context, id, notificationIntent, 0);
 		  //notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP

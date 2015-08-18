@@ -29,17 +29,28 @@
             </intent-filter>
         </activity>
         
+<<<<<<< HEAD
         <activity android:name="tr.com.srcn.bluetoothforhc05.AddArayuzClass"/>
         <activity android:name="tr.com.srcn.bluetoothforhc05.OutPut" />  
         
         
          
+=======
+        <activity android:name="tr.com.srcn.bluetoothforhc05.CreateAlarmActivity"/>
+        <activity android:name="tr.com.srcn.bluetoothforhc05.OutPut" />  
+        
+>>>>>>> Android project for HC05
         <receiver android:name=".AlarmReceiver" >
             <intent-filter>
                 <action android:name="com.manish.alarm.ACTION" />                
             </intent-filter>
+<<<<<<< HEAD
         </receiver>      
         
+=======
+        </receiver>
+          
+>>>>>>> Android project for HC05
     </application>
 
 </manifest>

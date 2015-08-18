@@ -4,9 +4,8 @@
     tools:context="tr.com.srcn.bluetoothforhc05.MainActivity" >
 
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never"/>
-
+	    android:id="@+id/create_alarm"
+	    android:orderInCategory="100"
+	    android:title="Create Alarm"/>
+    
 </menu>
