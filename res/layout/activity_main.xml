@@ -34,12 +34,6 @@
                 android:layout_height="wrap_content"
                 android:text="Search BT Device" />
 
-            <Button
-                android:id="@+id/addalarm"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="ADD ALARM" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -90,21 +84,7 @@
             android:layout_height="wrap_content"
             android:text="Reading Value"
             android:textAppearance="?android:attr/textAppearanceMedium" />
-<<<<<<< HEAD
-
-        <TextView
-            android:id="@+id/textView1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="5dp"
-            android:layout_marginTop="20dp"
-            android:text="STM32F4 DISCOVERY" />
-
-        <TextClock
-=======
  		<TextClock
->>>>>>> Android project for HC05
             android:id="@+id/textClock1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -112,11 +92,6 @@
             android:format12Hour="@null"
             android:format24Hour="#k:mm:ss"
             android:text="TextClock" />
-<<<<<<< HEAD
-
-=======
- 
->>>>>>> Android project for HC05
         <CheckBox
             android:id="@+id/led6"
             android:layout_width="wrap_content"

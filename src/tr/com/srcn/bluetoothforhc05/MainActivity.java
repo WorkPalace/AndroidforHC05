@@ -118,7 +118,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		search = (Button) findViewById(R.id.search);
 		write = (Button) findViewById(R.id.write);
 		settime = (Button) findViewById(R.id.settime);
-		addalarm = (Button) findViewById(R.id.addalarm);
 
 		status = (TextView) findViewById(R.id.status);
 		read_tv = (TextView) findViewById(R.id.read);
@@ -148,7 +147,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		write.setOnClickListener(this);
 		led6.setOnClickListener(this);
 		settime.setOnClickListener(this);
-		addalarm.setOnClickListener(this);
 		
 		myListView = (ListView) findViewById(R.id.listView1);
 		listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
@@ -276,16 +274,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
 		}
 		
-		if(v.getId() == R.id.addalarm) {
-			
-			Bundle bundle = new Bundle();
-			Intent intent = new Intent(this, AddArayuzClass.class);
-			bundle.putSerializable("selected_database", 0);
-			intent.putExtras(bundle);
-			startActivity(intent);	
-		}
-		
-	
 	}
 	
 	
