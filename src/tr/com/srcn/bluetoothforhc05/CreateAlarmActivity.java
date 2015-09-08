@@ -14,19 +14,26 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.DatePicker;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
-public class CreateAlarmActivity extends AppCompatActivity implements OnClickListener {
+public class CreateAlarmActivity extends AppCompatActivity implements OnClickListener, OnItemSelectedListener {
 
 	Button setDate,setTime, createAlarm, setSolenoid;
 	TextView time=null,date=null;
 	CheckBox motorDirection, startMotor;;
-	//MainActi connectedThread;
+	String[] content = { "Box1", "Box2", "Box3"};
+	Spinner box_spinner;
+	
+	String box_number;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -38,11 +45,21 @@ public class CreateAlarmActivity extends AppCompatActivity implements OnClickLis
 		createAlarm = (Button) findViewById(R.id.create_alarm);
 		setSolenoid = (Button) findViewById(R.id.setsolenoid);
 		
+		box_spinner = (Spinner) findViewById(R.id.spinner1);
+		
 		motorDirection = (CheckBox) findViewById(R.id.motordirection);
 		startMotor = (CheckBox) findViewById(R.id.startmotor);
 		
 		time = (TextView) findViewById(R.id.time);
 		date = (TextView) findViewById(R.id.date);
+		
+		
+		ArrayAdapter<String> adapter = new ArrayAdapter<String>(this,
+				  android.R.layout.simple_spinner_item, content);
+		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+		box_spinner.setAdapter(adapter);
+		
+		box_spinner.setOnItemSelectedListener(this);
 		
 		setDate.setOnClickListener(this);
 		setTime.setOnClickListener(this);
@@ -202,7 +219,7 @@ public class CreateAlarmActivity extends AppCompatActivity implements OnClickLis
 					
 					dayOfWeek=7;
 				}
-			    String send = '*' + time.getText().toString() + ":" + Integer.toString(dayOfWeek) + '\n';
+			    String send = '*' + box_number + ":" + time.getText().toString() + ":" + Integer.toString(dayOfWeek) + ":"   + String.valueOf("5") + '\n';
 			    
 			    Toast.makeText(this, send, Toast.LENGTH_SHORT).show();
 
@@ -220,5 +237,30 @@ public class CreateAlarmActivity extends AppCompatActivity implements OnClickLis
 			}
 			
 		}
+	}
+
+	@Override
+	public void onItemSelected(AdapterView<?> parent, View view, int position,
+			long id) {
+		// TODO Auto-generated method stub
+		
+		String boxnumber = parent.getItemAtPosition(position).toString();
+        // Toast mesajýný yazdýrdýk.
+		
+		if(boxnumber.equalsIgnoreCase("Box1"))
+			box_number = "1";
+		if(boxnumber.equalsIgnoreCase("Box2"))
+			box_number = "2";
+		if(boxnumber.equalsIgnoreCase("Box3"))
+			box_number = "3";
+		
+        Toast.makeText(getApplicationContext(), String.valueOf(box_number), Toast.LENGTH_SHORT).show();
+		
+	}
+
+	@Override
+	public void onNothingSelected(AdapterView<?> parent) {
+		// TODO Auto-generated method stub
+		
 	}
 }

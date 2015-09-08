@@ -1,14 +1,10 @@
 package tr.com.srcn.bluetoothforhc05;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.UUID;
 import android.support.v7.app.AppCompatActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -20,7 +16,6 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -54,11 +49,9 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	ArrayAdapter<String> listAdapter;
 	
     TextClock textclock;
-	
-    private static final UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-	
+		
     protected static final int SUCCESS_CONNECT = 0;
-    private static final int MESSAGE_READ = 1;
+    static final int MESSAGE_READ = 1;
 	private static final int REQUEST_ENABLE_BT = 2;
     protected static final int REQUEST_DISABLE_BT = 3;
 
@@ -91,8 +84,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 			
 			case SUCCESS_CONNECT:
 				
-				//connect = true;
-				connectedThread = new ConnectedThread((BluetoothSocket) msg.obj);	
+				connectedThread = new ConnectedThread((BluetoothSocket) msg.obj, mHandler);	
 				connectedThread.start();
 				Toast.makeText(getApplicationContext(), "Connected.", Toast.LENGTH_SHORT).show();
 				status.setText("Connect to " + device.getName());
@@ -100,9 +92,8 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 			 break;
 				
 			case MESSAGE_READ:
-				
 				String read = (String) msg.obj;
-				read_tv.setText(read);	            
+				read_tv.setText(read);
 			break;
 			
 			
@@ -130,6 +121,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		textclock = (TextClock) findViewById(R.id.textClock1);
 		
 		myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		
 		if(myBluetoothAdapter == null) {
 			
 			Toast.makeText(getApplicationContext(), "Your device does not support!!!",
@@ -139,9 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		else{
 			
 			turnonoff.setOnClickListener(this);
-		}
-		
-		
+		}		
 		
 		search.setOnClickListener(this);
 		write.setOnClickListener(this);
@@ -186,8 +176,6 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 
 	@Override
 	public void onStop() {
-		//if (bReceiver != null)
-		//	unregisterReceiver(bReceiver);;
 		super.onStop();
 	}
 
@@ -281,20 +269,16 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 	
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 	     if (resultCode == RESULT_OK) {
-	    	 
-	    	 //Toast.makeText(getApplicationContext(),"You select Yes.",
-		        //      Toast.LENGTH_SHORT).show();
+
 				turnonoff.setText("Turn OFF");
 				connected = true;
 				status.setText("BT Enable");
 	     }
 	     if(resultCode == RESULT_CANCELED) {
 	    	 
-	    	// Toast.makeText(getApplicationContext(),"You select No.",
-		             // Toast.LENGTH_SHORT).show();
 				turnonoff.setText("Turn ON");
 				connected = false;
-				status.setText("Status: Disable BT");
+				status.setText("BT Disable");
 
 	     }
 	  }
@@ -352,183 +336,13 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		   
 	       connected = false;
 	   }
-	   
-	   
-	   
-	   
-	   
-	   final class ConnectThread extends Thread {
-		    private final BluetoothSocket mmSocket;
-		    private final BluetoothDevice mmDevice;
-		 
-		    public ConnectThread(BluetoothDevice device) {
-		        // Use a temporary object that is later assigned to mmSocket,
-		        // because mmSocket is final
-		        BluetoothSocket tmp = null;
-		        mmDevice = device;
-		 
-		        // Get a BluetoothSocket to connect with the given BluetoothDevice
-		        try {
-		            // MY_UUID is the app's UUID string, also used by the server code
-		            tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
-		        } catch (IOException e) { }
-		        mmSocket = tmp;
-		    }
-		 
-		    public void run() {
-		        // Cancel discovery because it will slow down the connection
-		        myBluetoothAdapter.cancelDiscovery();
-		 
-		        try {
-		            // Connect the device through the socket. This will block
-		            // until it succeeds or throws an exception
-		            mmSocket.connect();
-		        } catch (IOException connectException) {
-		            // Unable to connect; close the socket and get out
-		            try {
-		                mmSocket.close();
-		            } catch (IOException closeException) { }
-		            return;
-		        }
-		 
-		        // Do work to manage the connection (in a separate thread)
-		        mHandler.obtainMessage(SUCCESS_CONNECT, mmSocket).sendToTarget();
-		    }
-
-			/** Will cancel an in-progress connection, and close the socket */
-		    public void cancel() {
-		        try {
-		            mmSocket.close();
-		        } catch (IOException e) { }
-		    }
-		}
-	   
-	   
-	   
-	   
-	   	   
-	   final class ConnectedThread extends Thread {
-			private final BluetoothSocket mmSocket;
-		    private final InputStream mmInStream;
-		    private final OutputStream mmOutStream;
-		 
-		    public ConnectedThread(BluetoothSocket socket) {
-		        mmSocket = socket;
-		        InputStream tmpIn = null;
-		        OutputStream tmpOut = null;
-		 
-		        // Get the input and output streams, using temp objects because
-		        // member streams are final
-		        try {
-		            tmpIn = socket.getInputStream();
-		            tmpOut = socket.getOutputStream();
-		        } catch (IOException e) { }
-		 
-		        mmInStream = tmpIn;
-		        mmOutStream = tmpOut;
-		    }
-		    
-		    
-		    public void run() {
-		    	byte[] buffer = null;
-		    	buffer = new byte[1024];
-	            int bytes = 0; 
-		        // Keep listening to the InputStream until an exception occurs
-		        while (true) {
-		            try {
-		            	bytes = mmInStream.read(buffer);            //read bytes from input buffer
-	                    for(int i = 0; i<10; i++) {
-	                    	if(buffer[i] == "#".getBytes()[0]) {
-	                        
-                    			String readMessage = new String(buffer,0,buffer.length);
-	                    		// Send the obtained bytes to the UI Activity
-	                    		mHandler.obtainMessage(MESSAGE_READ, bytes, -1, readMessage)
-	                            .sendToTarget();
-	                    	}
-	                    }	
-		            } catch (IOException e) {
-			            Log.e("Error2", "Hata var");
-
-		                break;
-		            }
-		        }
-		    }
-		  
-		    /* Call this from the main activity to send data to the remote device */
-		    public void write(byte[] bytes) {
-		        try {
-		            mmOutStream.write(bytes);
-		        } catch (IOException e) { }
-		    }
-		    
-		    public void writes(byte bytes) {
-		        try {
-		            mmOutStream.write(bytes);
-		        } catch (IOException e) { }
-		    }
-		 
-		    /* Call this from the main activity to shutdown the connection */
-		    public void cancel() {
-		        try {
-		            mmSocket.close();
-		        } catch (IOException e) { }
-		    }
-		}
-
-
 
 	@Override
 	public void onItemClick(AdapterView<?> parent, View view, int position,
 			long id) {
 		// TODO Auto-generated method stub
 		BluetoothDevice selectdevice = pairedDevices.get(position);
-		ConnectThread connectThread = new  ConnectThread(selectdevice);
+		ConnectThread connectThread = new  ConnectThread(selectdevice, mHandler, myBluetoothAdapter);
 		connectThread.start();
 	}
-	   
-	private String convertStringToHex(String string)
-	{
-	    StringBuilder newString = new StringBuilder();
-	    for (int i=0; i<string.length(); i++)
-	    {
-	        newString.append(String.format("%x ", (byte)(string.charAt(i))));
-	    }
-	    return newString.toString();
-	} 
-	
-	public String convertHexToString(String hex) {
-		
-	    StringBuilder sb = new StringBuilder();
-	    
-	    char[] hexData = hex.toCharArray();
-	    for (int count = 0; count < hexData.length - 1; count += 2) {
-	        int firstDigit = Character.digit(hexData[count], 16);
-	        int lastDigit = Character.digit(hexData[count + 1], 16);
-	        int decimal = firstDigit * 16 + lastDigit;
-	        sb.append((char)decimal);
-	    }
-	    return sb.toString();
-	}
-	
-	 public byte[] toHex(String hex) {
-	        int len = hex.length();
-	        byte[] result = null;
-	        result = new byte[len-(len/2)];
-
-
-
-	        try {
-	            int index = 0;
-	            for (int i = 0; i < len-1; i += 2) {
-	                result[index] = (byte) Integer.parseInt(hex.substring(i, i + 2), 16);
-	                index++;
-	            }
-	        } catch (NumberFormatException e) {
-	           // log("toHex NumberFormatException: " + e.getMessage());
-
-	        } catch (StringIndexOutOfBoundsException e) {
-	           // log("toHex StringIndexOutOfBoundsException: " + e.getMessage());
-	        }
-	        return result;
-	    }
 }
