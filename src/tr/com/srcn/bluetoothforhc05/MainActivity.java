@@ -6,6 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -30,14 +31,17 @@ import android.widget.ListView;
 import android.widget.TextClock;
 import android.widget.TextView;
 import android.widget.Toast;
+import tr.com.srcn.bluetoothforhc05.models.MyLab;
+import tr.com.srcn.bluetoothforhc05.utils.BluetoothStringUtils;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener, OnItemClickListener {
+	private static final String TAG = MainActivity.class.getSimpleName();
 	
-	Button turnonoff, search, write, settime, addalarm;
-	TextView status, read_tv, datetime_tv;
+	Button turnonoff, search, write, settime, addalarm, sendalarm, servo;
+	TextView status, read_tv, datetime_tv, utc;
 	ListView myListView;
 	EditText write_text;
-	CheckBox led6;
+	CheckBox led6,motordirection,motoronoff;
 	
 	BluetoothDevice device;
 	BluetoothAdapter myBluetoothAdapter;
@@ -109,15 +113,20 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		search = (Button) findViewById(R.id.search);
 		write = (Button) findViewById(R.id.write);
 		settime = (Button) findViewById(R.id.settime);
+		sendalarm = (Button) findViewById(R.id.sendalarmbutton);
+		servo = (Button) findViewById(R.id.servo);
 
 		status = (TextView) findViewById(R.id.status);
 		read_tv = (TextView) findViewById(R.id.read);
 		datetime_tv = (TextView) findViewById(R.id.datetime_tv);
+		utc = (TextView) findViewById(R.id.utc);
 
 		write_text = (EditText) findViewById(R.id.editText1);
 		
 		led6 = (CheckBox) findViewById(R.id.led6);
-		
+		motoronoff = (CheckBox) findViewById(R.id.motoronoff);
+		motordirection = (CheckBox) findViewById(R.id.motordirection);
+
 		textclock = (TextClock) findViewById(R.id.textClock1);
 		
 		myBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -136,13 +145,22 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		search.setOnClickListener(this);
 		write.setOnClickListener(this);
 		led6.setOnClickListener(this);
+		motoronoff.setOnClickListener(this);
+		motordirection.setOnClickListener(this);
+
 		settime.setOnClickListener(this);
-		
+		sendalarm.setOnClickListener(this);
+		servo.setOnClickListener(this);
+
 		myListView = (ListView) findViewById(R.id.listView1);
 		listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
 		pairedDevices = new ArrayList<BluetoothDevice>(); 
 		myListView.setAdapter(listAdapter);
 		myListView.setOnItemClickListener(this);
+		
+		
+		//test json string
+		Log.d(TAG + "******", BluetoothStringUtils.setAllBoxesActionBluetoothString());
 
 	}
 
@@ -220,14 +238,14 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 			
 			if(led6.isChecked()) {
 				
-				String on = "LED6";
+				String on = "{\"mS\":3,\"led_status\":1}";
 				on = on + '\n';
 				if(connected_device == true)
 					connectedThread.write(on.getBytes());	
 			}
 			else {
 				
-				String off = "LED6OFF";
+				String off = "{\"mS\":3,\"led_status\":0}";
 				off = off + '\n';
 				if(connected_device == true)
 					connectedThread.write(off.getBytes());
@@ -236,32 +254,91 @@ public class MainActivity extends AppCompatActivity implements OnClickListener, 
 		
 		if(v.getId() == R.id.settime) {
 			
-
+						String datetime;
+						String json;
 						long msTime = System.currentTimeMillis();
+						int timeinmill = (int) (msTime/1000);
+						utc.setText(String.valueOf(timeinmill));
+						
 						Date curDateTime = new Date(msTime);
 						DateFormat dateFormat = new SimpleDateFormat("#HH:mm:ss:dd:MM:yyyy");
-						String datetime = dateFormat.format(curDateTime);
+						String datetime2 = dateFormat.format(curDateTime);
 						
 						Calendar cal = Calendar.getInstance();
 						cal.setTime(curDateTime);
 						int dayofweek = cal.get(Calendar.DAY_OF_WEEK)-1;
 						
-						if(dayofweek == 0) {
-							
+						if(dayofweek == 0) {							
 							dayofweek=7;
 						}
 						
-						datetime = datetime + ":" + String.valueOf(dayofweek);
+						datetime2 = datetime2 + ":" + String.valueOf(dayofweek);
 						
-						datetime_tv.setText(datetime);
+						datetime_tv.setText(datetime2);
 						
+						datetime = "#" + String.valueOf(timeinmill);
 						datetime = datetime + '\n';
-						//if(connected_device == true)
-							connectedThread.write(datetime.getBytes());	
+						
 
+						json = "{\"mS\":2,\"current_time\":"+timeinmill+"}";
+						json = json + '\n';
+						
+						Log.d(TAG + "******", json);
 
+						if(connected_device == true)
+							connectedThread.write(json.getBytes());	
 		}
 		
+		if(v.getId() == R.id.sendalarmbutton) {
+			//json = BluetoothStringUtils.setAllBoxesActionBluetoothString();
+			MyLab.get(MyApplication.sApplicationContext).create4DummyBoxes();
+			if(connected_device == true)
+				connectedThread.write((BluetoothStringUtils.setAllBoxesActionBluetoothString()+'\n').getBytes());
+		}
+		
+		if(v.getId() == R.id.motoronoff) {
+			
+			if(motoronoff.isChecked()) {
+				
+				String on = "{\"mS\":4,\"motor_onoff\":1}";
+				on = on + '\n';
+				if(connected_device == true)
+					connectedThread.write(on.getBytes());	
+			}
+			else {
+				
+				String off = "{\"mS\":4,\"motor_onoff\":0}";
+				off = off + '\n';
+				if(connected_device == true)
+					connectedThread.write(off.getBytes());
+			}
+		}
+		
+		if(v.getId() == R.id.motordirection) {
+			
+			if(motordirection.isChecked()) {
+				
+				String cw = "{\"mS\":5,\"motor_direction\":0}";
+				cw = cw + '\n';
+				if(connected_device == true)
+					connectedThread.write(cw.getBytes());	
+			}
+			else {
+				
+				String ccw = "{\"mS\":5,\"motor_direction\":1}";
+				ccw = ccw + '\n';
+				if(connected_device == true)
+					connectedThread.write(ccw.getBytes());
+			}
+		}
+		
+		if(v.getId() == R.id.servo) {
+			
+			String cw = "{\"mS\":6,\"servo_enable\":0}";
+			cw = cw + '\n';
+			if(connected_device == true)
+				connectedThread.write(cw.getBytes());
+		}
 	}
 	
 	

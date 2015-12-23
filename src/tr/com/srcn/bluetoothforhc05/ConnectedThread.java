@@ -59,7 +59,7 @@ public class ConnectedThread extends Thread {
                         	byte[] encodedBytes = new byte[readBufferPosition];
                         	System.arraycopy(readBuffer, 0, encodedBytes, 0, encodedBytes.length);
                         	final String data = new String(encodedBytes, "US-ASCII");
-                        	if(data.trim().replace(" ", "").startsWith("#"))
+                        	if(data.trim().replace(" ", "").startsWith("#")) 
 
                         		mHandler.obtainMessage(MainActivity.MESSAGE_READ, readBufferPosition , -1, data)
                         		.sendToTarget();

@@ -30,7 +30,7 @@ public class CreateAlarmActivity extends AppCompatActivity implements OnClickLis
 	Button setDate,setTime, createAlarm, setSolenoid;
 	TextView time=null,date=null;
 	CheckBox motorDirection, startMotor;;
-	String[] content = { "Box1", "Box2", "Box3"};
+	String[] content = { "Box1", "Box2", "Box3","Box4","Box5"};
 	Spinner box_spinner;
 	
 	String box_number;
@@ -209,17 +209,17 @@ public class CreateAlarmActivity extends AppCompatActivity implements OnClickLis
 				setalarm.set(Calendar.HOUR_OF_DAY, sHour);
 				setalarm.set(Calendar.MINUTE, sMinute);
 				setalarm.set(Calendar.SECOND, 0);
-
+				int alarminmill = (int) (setalarm.getTimeInMillis()/1000);//get alarm in milisecond
+				
 			    alarmManager.set(AlarmManager.RTC_WAKEUP, setalarm.getTimeInMillis(), pendingIntent);
 			    
 			    int dayOfWeek = setalarm.get(Calendar.DAY_OF_WEEK)-1;
-			    
 			    
 			    if(dayOfWeek == 0) {
 					
 					dayOfWeek=7;
 				}
-			    String send = '*' + box_number + ":" + time.getText().toString() + ":" + Integer.toString(dayOfWeek) + ":"   + String.valueOf("5") + '\n';
+			    String send = '*' + box_number + ":" + String.valueOf(alarminmill) + '\n'; 
 			    
 			    Toast.makeText(this, send, Toast.LENGTH_SHORT).show();
 
@@ -232,7 +232,7 @@ public class CreateAlarmActivity extends AppCompatActivity implements OnClickLis
 				//connectedThread.run();
 				MainActivity.connectedThread.write(send.getBytes());	
 				
-				finish();
+				//finish();
 
 			}
 			
@@ -253,6 +253,10 @@ public class CreateAlarmActivity extends AppCompatActivity implements OnClickLis
 			box_number = "2";
 		if(boxnumber.equalsIgnoreCase("Box3"))
 			box_number = "3";
+		if(boxnumber.equalsIgnoreCase("Box4"))
+			box_number = "4";
+		if(boxnumber.equalsIgnoreCase("Box5"))
+			box_number = "5";
 		
         Toast.makeText(getApplicationContext(), String.valueOf(box_number), Toast.LENGTH_SHORT).show();
 		
